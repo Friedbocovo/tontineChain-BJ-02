@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TontineChain — Tontines sécurisées par la blockchain</title>
+<link href="https://fonts.googleapis.com/css2?family=Itim:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Itim&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #1385c7;
+    --gold2: #F5A623;
+    --gold-light: #80b7ff;
+    --gold-dark: #C8820A;
+    --deep: #0A0F1E;
+    --deep2: #111827;
+    --deep3: #1A2235;
+    --green: #22C55E;
+    --green-dim: #16A34A;
+    --red: #EF4444;
+    --text: #E8EDF5;
+    --text-dim: #94A3B8;
+    --border: rgba(245,166,35,0.15);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--deep);
+    color: var(--text);
+    overflow-x: hidden;
+    line-height: 1.6;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.2rem 5%;
+    background: rgba(10,15,30,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo { display: flex; align-items: center; gap: .6rem; text-decoration: none; }
+  .nav-logo .hex { width: 34px; height: 34px; }
+  .nav-logo span { font-family: 'Itim', sans-serif; font-weight: 800; font-size: 1.2rem; color: var(--gold2); letter-spacing: .5px; }
+  .nav-links { display: flex; gap: 2rem; list-style: none; }
+  .nav-links a { color: var(--text-dim); text-decoration: none; font-size: .9rem; font-weight: 500; transition: color .2s; }
+  .nav-links a:hover { color: var(--gold); }
+  .nav-cta {
+    background: var(--gold); color: var(--deep); font-weight: 700;
+    padding: .55rem 1.4rem; border-radius: 50px; font-size: .9rem;
+    text-decoration: none; transition: background .2s, transform .15s;
+  }
+  .nav-cta:hover { background: var(--gold-light); transform: translateY(-1px); }
+
+  /* ── HERO ── */
+  #hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    text-align: center; padding: 8rem 5% 5rem;
+    position: relative; overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute; inset: 0; z-index: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% 30%, rgba(245,166,35,.12) 0%, transparent 70%),
+                radial-gradient(ellipse 50% 40% at 20% 80%, rgba(34,197,94,.06) 0%, transparent 60%),
+                var(--deep);
+  }
+  .hero-grid {
+    position: absolute; inset: 0; z-index: 0;
+    background-image: linear-gradient(rgba(245,166,35,.04) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(245,166,35,.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse at center, black 40%, transparent 80%);
+  }
+  .badge {
+    display: inline-flex; align-items: center; gap: .5rem;
+    background: rgba(245,166,35,.12); border: 1px solid rgba(245,166,35,.3);
+    color: var(--gold); padding: .4rem 1rem; border-radius: 50px;
+    font-size: .8rem; font-weight: 600; letter-spacing: .5px; text-transform: uppercase;
+    margin-bottom: 1.5rem; position: relative; z-index: 1;
+    animation: fadeDown .8s ease both;
+  }
+  .badge .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+  h1 {
+    font-family: 'Itim', sans-serif; font-weight: 800;
+    font-size: clamp(4.6rem, 9vw, 8.5rem); line-height: 1.08;
+    position: relative; z-index: 1;
+    animation: fadeUp .9s .15s ease both;
+  }
+  h1 .highlight { color: var(--gold); position: relative; display: inline-block; }
+  h1 .highlight::after {
+    content: ''; position: absolute; bottom: -4px; left: 0; right: 0;
+    height: 3px; background: var(--gold); border-radius: 2px;
+    animation: lineGrow 1s 1.2s ease both; transform-origin: left; transform: scaleX(0);
+  }
+  @keyframes lineGrow { to{transform:scaleX(1)} }
+  .hero-sub {
+    max-width: 640px; font-size: 1.15rem; color: var(--text-dim); margin: 1.5rem auto 2.5rem;
+    font-weight: 300; line-height: 1.7;
+    position: relative; z-index: 1;
+    animation: fadeUp .9s .3s ease both;
+  }
+  .hero-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; position: relative; z-index: 1; animation: fadeUp .9s .45s ease both; }
+  .btn-primary {
+    background: var(--gold); color: var(--deep); font-family: 'Itim', sans-serif;
+    font-weight: 700; padding: .85rem 2rem; border-radius: 50px; text-decoration: none;
+    font-size: 1rem; transition: all .2s; box-shadow: 0 0 30px rgba(245,166,35,.3);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 50px rgba(245,166,35,.5); }
+  .btn-secondary {
+    background: transparent; color: var(--text); border: 1px solid rgba(255,255,255,.2);
+    font-weight: 500; padding: .85rem 2rem; border-radius: 50px; text-decoration: none;
+    font-size: 1rem; transition: all .2s;
+  }
+  .btn-secondary:hover { border-color: var(--gold); color: var(--gold); }
+  .hero-stats {
+    display: flex; gap: 3rem; justify-content: center; flex-wrap: wrap;
+    margin-top: 4rem; position: relative; z-index: 1;
+    animation: fadeUp .9s .6s ease both;
+  }
+  .stat-item { text-align: center;  display: flex; flex-direction:column; justify-content: center;
+    align-items: center;}
+  .stat-num { font-family: 'Itim', sans-serif; font-size: 2.2rem; font-weight: 800; color: var(--gold); display: flex; }
+  .stat-label { font-size: .82rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: .8px; }
+  .scroll-indicator {
+    position: absolute; bottom: 2.5rem; left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: .4rem; z-index: 1;
+    animation: fadeUp 1s .9s ease both;
+  }
+  .scroll-indicator span { margin-top:10px; font-size: .75rem; color: var(--text-dim); letter-spacing: 1px; text-transform: uppercase; }
+  .scroll-arrow { width: 24px; height: 24px; margin-top: 10px; border-right: 2px solid var(--gold); border-bottom: 2px solid var(--gold); transform: rotate(45deg); animation: scrollBounce 1.5s infinite; }
+
+
+  /* ── SECTIONS COMMONS ── */
+  section { padding: 6rem 5%; }
+  .section-tag {
+    display: inline-block; font-size: .75rem; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--gold2); margin-bottom: 1rem;
+  }
+  h2 { font-family: 'Itim', sans-serif; font-weight: 800; font-size: clamp(1.8rem, 4vw, 2.8rem); line-height: 1.2; margin-bottom: 1rem; }
+  .section-intro { font-size: 1.1rem; color: var(--text-dim); max-width: 600px; line-height: 1.7; margin-bottom: 3rem; }
+  .max-w { max-width: 1100px; margin: 0 auto; }
+
+  /* ── PROBLEM ── */
+  #problem { background: var(--deep2); }
+  .problem-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
+  .problem-visual {
+    position: relative; padding: 2rem;
+    background: var(--deep3); border: 1px solid var(--border); border-radius: 20px;
+    overflow: hidden;
+  }
+  .problem-visual::before {
+    content: ''; position: absolute; top: -40px; right: -40px;
+    width: 150px; height: 150px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(239,68,68,.15), transparent 70%);
+  }
+  .cycle-step {
+    display: flex; align-items: flex-start; gap: 1rem;
+    padding: 1rem; border-radius: 12px; margin-bottom: .8rem;
+    background: rgba(255,255,255,.03); border: 1px solid transparent;
+    transition: all .2s; cursor: default;
+  }
+  .cycle-step:hover { border-color: var(--border); background: rgba(245,166,35,.05); }
+  .step-num {
+    min-width: 32px; height: 32px; border-radius: 50%;
+    background: rgba(245,166,35,.15); border: 1px solid rgba(245,166,35,.3);
+    color: var(--gold); font-family: 'Itim', sans-serif; font-weight: 700; font-size: .85rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step-num.danger { background: rgba(239,68,68,.15); border-color: rgba(239,68,68,.3); color: var(--red); }
+  .step-text strong { display: block; font-weight: 600; font-size: .95rem; margin-bottom: .2rem; }
+  .step-text p { font-size: .85rem; color: var(--text-dim); }
+  .risk-tag {
+    display: inline-flex; align-items: center; gap: .3rem;
+    font-size: .75rem; color: var(--red); background: rgba(239,68,68,.1);
+    border: 1px solid rgba(239,68,68,.2); padding: .2rem .6rem; border-radius: 50px; margin-top: .3rem;
+  }
+
+  /* ── DATA ── */
+  #data { background: var(--deep); }
+  .data-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; }
+  .data-card {
+    background: var(--deep3); border: 1px solid var(--border); border-radius: 16px;
+    padding: 1.8rem; position: relative; overflow: hidden; transition: transform .2s, border-color .2s;
+  }
+  .data-card:hover { transform: translateY(-4px); border-color: rgba(245,166,35,.4); }
+  .data-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--gold), transparent);
+  }
+  .data-card .icon { font-size: 2rem; margin-bottom: 1rem; }
+  .data-card .num { font-family: 'Itim', sans-serif; font-weight: 800; font-size: 2rem; color: var(--gold); display: block; line-height: 1; }
+  .data-card p { font-size: .9rem; color: var(--text-dim); margin-top: .5rem; line-height: 1.5; }
+
+  /* ── INCIDENTS ── */
+  #incidents { background: var(--deep2); }
+  .incidents-table { width: 100%; border-collapse: collapse; }
+  .incidents-table th {
+    text-align: left; padding: .9rem 1.2rem; font-size: .78rem; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--text-dim); border-bottom: 1px solid var(--border);
+  }
+  .incidents-table td { padding: 1rem 1.2rem; border-bottom: 1px solid rgba(255,255,255,.04); font-size: .92rem; }
+  .incidents-table tr:hover td { background: rgba(245,166,35,.03); }
+  .freq-badge {
+    display: inline-block; padding: .25rem .7rem; border-radius: 50px; font-size: .78rem; font-weight: 600;
+  }
+  .freq-badge.high { background: rgba(239,68,68,.15); color: #F87171; border: 1px solid rgba(239,68,68,.2); }
+  .freq-badge.medium { background: rgba(245,166,35,.15); color: var(--gold); border: 1px solid rgba(245,166,35,.2); }
+  .freq-badge.low { background: rgba(34,197,94,.15); color: #86EFAC; border: 1px solid rgba(34,197,94,.2); }
+
+  /* ── SOLUTION ── */
+  #solution { background: var(--deep); }
+  .solution-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: start; }
+  .solution-features { display: flex; flex-direction: column; gap: 1.2rem; }
+  .feature-item {
+    display: flex; gap: 1.2rem; align-items: flex-start;
+    padding: 1.4rem; background: var(--deep3); border: 1px solid var(--border);
+    border-radius: 14px; transition: all .25s;
+  }
+  .flex{
+    display:flex;
+    gap:10px;
+    justify-content: center;
+    align-items: center;
+  }
+  .feature-item:hover { border-color: rgba(245,166,35,.4); transform: translateX(5px); }
+  .feature-icon {
+    min-width: 44px; height: 44px; border-radius: 12px;
+    background: linear-gradient(135deg, rgba(245,166,35,.2), rgba(245,166,35,.05));
+    border: 1px solid rgba(245,166,35,.2);
+    display: flex; align-items: center; justify-content: center; font-size: 1.3rem;
+  }
+  .feature-text strong { display: block; font-weight: 600; margin-bottom: .3rem; }
+  .feature-text p { font-size: .88rem; color: var(--text-dim); line-height: 1.5; }
+  .solution-visual {
+    position: sticky; top: 6rem;
+    background: var(--deep3); border: 1px solid var(--border); border-radius: 20px;
+    padding: 2rem; overflow: hidden;
+  }
+  .sol-title { font-family: 'Itim', sans-serif; font-weight: 700; font-size: 1rem; color: var(--gold); margin-bottom: 1.5rem; display: flex; align-items: center; gap: .5rem; }
+  .mapping-row {
+    display: grid; grid-template-columns: 1fr auto 1fr; gap: .8rem; align-items: center;
+    padding: .8rem 0; border-bottom: 1px solid rgba(255,255,255,.04);
+  }
+  .mapping-row:last-child { border: none; }
+  .prob-tag {
+    background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.2);
+    color: #F87171; padding: .4rem .7rem; border-radius: 8px; font-size: .8rem; line-height: 1.3;
+  }
+  .sol-tag {
+    background: rgba(34,197,94,.1); border: 1px solid rgba(34,197,94,.2);
+    color: #86EFAC; padding: .4rem .7rem; border-radius: 8px; font-size: .8rem; line-height: 1.3; text-align: right;
+  }
+  .arrow-mid { color: var(--gold); font-size: 1.2rem; text-align: center; }
+
+  /* ── HOW IT WORKS ── */
+  #how { background: var(--deep2); }
+  .steps-flow { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0; position: relative; }
+  .steps-flow::before {
+    content: ''; position: absolute; top: 3rem; left: 10%; right: 10%; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    z-index: 0;
+  }
+  .flow-step { text-align: center; padding: 2rem 1.5rem; position: relative; z-index: 1; }
+  .flow-num {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+    color: var(--deep); font-family: 'Itim', sans-serif; font-weight: 800; font-size: 1.2rem;
+    display: flex; align-items: center; justify-content: center; margin: 0 auto 1.2rem;
+    box-shadow: 0 0 20px rgba(245,166,35,.4);
+  }
+  .flow-step h4 { font-family: 'Itim', sans-serif; font-weight: 700; font-size: 1rem; margin-bottom: .5rem; }
+  .flow-step p { font-size: .85rem; color: var(--text-dim); }
+
+  /* ── TONTINES TYPES ── */
+  #types { background: var(--deep); }
+  .types-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.2rem; }
+  .type-card {
+    background: var(--deep3); border: 1px solid var(--border); border-radius: 14px;
+    padding: 1.5rem; transition: all .2s;
+  }
+  .type-card:hover { border-color: rgba(245,166,35,.35); transform: translateY(-3px); }
+  .type-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: .8rem; }
+  .type-name { font-family: 'Itim', sans-serif; font-weight: 700; font-size: 1rem; }
+  .type-local { font-size: .78rem; color: var(--gold); font-style: italic; }
+  .risk-indicator { font-size: 1.2rem; }
+  .type-desc { font-size: .88rem; color: var(--text-dim); line-height: 1.5; }
+
+  /* ── IMPACT ── */
+  #impact { background: var(--deep2); }
+  .impact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center; }
+  .odd-badges { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .odd-card {
+    background: var(--deep3); border: 1px solid var(--border); border-radius: 14px;
+    padding: 1.2rem; text-align: center; transition: all .2s;
+  }
+  .odd-card:hover { border-color: rgba(34,197,94,.3); }
+  .odd-num { font-family: 'Itim', sans-serif; font-weight: 800; font-size: 1.5rem; color: var(--green); display: block; }
+  .odd-label { font-size: .78rem; color: var(--text-dim); margin-top: .3rem; line-height: 1.3; }
+  .impact-list { list-style: none; display: flex; flex-direction: column; gap: 1rem; }
+  .impact-list li {
+    display: flex; align-items: flex-start; gap: 1rem;
+    padding: 1.2rem; background: var(--deep3); border: 1px solid var(--border); border-radius: 12px;
+  }
+  .impact-icon { font-size: 1.5rem; min-width: 2rem; }
+  .impact-list li strong { display: block; font-weight: 600; margin-bottom: .2rem; }
+  .impact-list li span { font-size: .88rem; color: var(--text-dim); }
+
+  /* ── LEGAL ── */
+  #legal { background: var(--deep); }
+  .legal-items { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.2rem; }
+  .legal-item {
+    background: var(--deep3); border: 1px solid var(--border); border-radius: 12px;
+    padding: 1.4rem; display: flex; gap: 1rem; transition: border-color .2s;
+  }
+  .legal-item:hover { border-color: rgba(34,197,94,.3); }
+  .legal-icon { font-size: 1.5rem; min-width: 2rem; }
+  .legal-item strong { display: block; font-size: .9rem; color: var(--text); margin-bottom: .3rem; }
+  .legal-item p { font-size: .83rem; color: var(--text-dim); line-height: 1.5; }
+
+  /* ── PHASES ── */
+  #phases { background: linear-gradient(135deg, var(--deep2), var(--deep3)); }
+  .phases-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+  .phase-card {
+    background: var(--deep); border: 1px solid var(--border); border-radius: 16px;
+    padding: 2rem; position: relative; overflow: hidden; transition: all .25s;
+  }
+  .phase-card.active { border-color: var(--gold); box-shadow: 0 0 30px rgba(245,166,35,.15); }
+  .phase-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--border); }
+  .phase-card.active::before { background: linear-gradient(90deg, var(--gold), var(--gold-light)); }
+  .phase-tag { font-family: 'Itim', sans-serif; font-size: .75rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); margin-bottom: .5rem; }
+  .phase-card.active .phase-tag { color: var(--gold); }
+  .phase-card h3 { font-family: 'Itim', sans-serif; font-weight: 800; font-size: 1.2rem; margin-bottom: 1rem; }
+  .phase-items { list-style: none; display: flex; flex-direction: column; gap: .6rem; }
+  .phase-items li { display: flex; gap: .7rem; font-size: .88rem; color: var(--text-dim); }
+  .phase-items li::before { content: '→'; color: var(--gold); flex-shrink: 0; }
+  .active-badge {
+    display: inline-flex; align-items: center; gap: .4rem;
+    background: rgba(245,166,35,.15); border: 1px solid rgba(245,166,35,.3);
+    color: var(--gold); padding: .3rem .8rem; border-radius: 50px; font-size: .75rem; font-weight: 700;
+    margin-bottom: 1rem;
+  }
+
+  /* ── CTA ── */
+  #cta {
+    background: var(--deep);
+    text-align: center; padding: 7rem 5%;
+    position: relative; overflow: hidden;
+  }
+  #cta::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(245,166,35,.1), transparent 70%);
+  }
+  #cta h2 { font-size: clamp(2rem, 5vw, 3.5rem); margin-bottom: 1rem; position: relative; z-index: 1; }
+  #cta p { color: var(--text-dim); max-width: 500px; margin: 0 auto 2.5rem; font-size: 1.05rem; position: relative; z-index: 1; }
+  .hackathon-badge {
+    display: inline-flex; align-items: center; gap: .5rem;
+    background: rgba(34,197,94,.1); border: 1px solid rgba(34,197,94,.3);
+    color: #86EFAC; padding: .5rem 1.2rem; border-radius: 50px; font-size: .85rem; font-weight: 600;
+    margin-bottom: 2rem; position: relative; z-index: 1;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--deep2); border-top: 1px solid var(--border);
+    padding: 3rem 5%; text-align: center;
+  }
+  footer .footer-logo { font-family: 'Itim', sans-serif; font-weight: 800; font-size: 1.5rem; color: var(--gold); margin-bottom: .5rem; }
+  footer p { color: var(--text-dim); font-size: .85rem; }
+  footer .footer-links { display: flex; gap: 2rem; justify-content: center; margin: 1.5rem 0; list-style: none; flex-wrap: wrap; }
+  footer .footer-links a { color: var(--text-dim); text-decoration: none; font-size: .85rem; transition: color .2s; }
+  footer .footer-links a:hover { color: var(--gold); }
+  .odd-strip { display: flex; gap: .5rem; justify-content: center; flex-wrap: wrap; margin-top: 1.5rem; }
+  .odd-pill {
+    background: rgba(245,166,35,.08); border: 1px solid var(--border);
+    color: var(--text-dim); padding: .3rem .8rem; border-radius: 50px; font-size: .75rem;
+  }
+
+  /* ── HEXAGON SVG ── */
+  .hex-svg { position: absolute; opacity: .05; pointer-events: none; }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    .problem-grid, .solution-grid, .impact-grid { grid-template-columns: 1fr; }
+    .phases-row { grid-template-columns: 1fr; }
+    .nav-links { display: none; }
+    .steps-flow::before { display: none; }
+    .hero-stats { gap: 2rem; }
+  }
+
+  /* ANIMATED COUNTER */
+  .count-up { display: inline-block; }
+
+  /* SCROLL REVEAL */
+  .reveal { opacity: 0; transform: translateY(30px); transition: opacity .7s ease, transform .7s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* BLOCKCHAIN VISUAL */
+  .chain-visual {
+    display: flex; flex-direction: column; gap: .5rem;
+  }
+  .block {
+    background: rgba(245,166,35,.06); border: 1px solid rgba(245,166,35,.2); border-radius: 10px;
+    padding: .8rem 1rem; display: flex; align-items: center; gap: .8rem;
+    font-size: .82rem; transition: all .3s;
+  }
+  .block:hover { background: rgba(245,166,35,.1); }
+  .block-icon { font-size: 1rem; }
+  .block-hash { font-family: monospace; color: var(--text-dim); font-size: .72rem; margin-left: auto; }
+  .block-connector { display: flex; justify-content: center; }
+  .block-connector::after { content: '│'; color: rgba(245,166,35,.3); font-size: 1.2rem; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#hero">
+    <svg class="hex" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M20 2L36 11V29L20 38L4 29V11L20 2Z" fill="rgba(245,166,35,0.15)" stroke="#F5A623" stroke-width="1.5"/>
+      <text x="20" y="26" text-anchor="middle" font-family="Itim,sans-serif" font-size="13" font-weight="800" fill="#F5A623">TC</text>
+    </svg>
+    <span>TontineChain</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#problem">Problème</a></li>
+    <li><a href="#solution">Solution</a></li>
+    <li><a href="#how">Fonctionnement</a></li>
+    <li><a href="#legal">Légalité</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+
+  <h1>
+    La <span class="highlight">tontine</span><br>
+    réinventée par la<br>
+    <span class="highlight">blockchain</span>
+  </h1>
+  <p class="hero-sub">
+    Des centaines de millions de dollars circulent chaque année dans les tontines béninoises — sans protection, sans recours. TontineChain encode les règles dans un smart contract. Personne ne peut plus tricher.
+  </p>
+  <div class="hero-btns">
+    <a href="#solution" class="btn-primary">Découvrir la solution →</a>
+    <a href="#problem" class="btn-secondary">Comprendre le problème</a>
+  </div>
+  <div class="hero-stats">
+    <div class="stat-item">
+            <div class="flex">      <span class="stat-num" data-target="70">0</span><span style="color:var(--gold);font-family:'Itim',sans-serif;font-weight:800;font-size:2.2rem">%</span>
+</div>
+
+      <div class="stat-label">des adultes béninois<br>dans les tontines</div>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num" data-target="10" data-suffix="M FCFA">0</span>
+      <div class="stat-label">gérés chaque année<br>sans protection</div>
+    </div>
+    <div class="stat-item">
+      <div class="flex">      <span class="stat-num" data-target="20">0</span><span style="color:var(--gold);font-family:'Itim',sans-serif;font-weight:800;font-size:2.2rem">%</span>
+</div>
+      <div class="stat-label">des tontines subissent<br>un incident majeur/an</div>
+    </div>
+    <div class="stat-item">
+      <div class="flex">      <span class="stat-num" data-target="70">0</span><span style="color:var(--gold);font-family:'Itim',sans-serif;font-weight:800;font-size:2.2rem">%</span>
+</div>
+      <div class="stat-label">des participants<br>sont des femmes</div>
+    </div>
+  </div>
+  <div class="scroll-indicator">
+    <div class="scroll-arrow"></div>
+  </div>
+</section>
+
+<!-- PROBLEM -->
+<section id="problem">
+  <div class="max-w">
+    <div class="problem-grid">
+      <div class="reveal">
+        <div class="section-tag">⬡ Le problème</div>
+        <h2>La confiance seule ne suffit plus</h2>
+        <p class="section-intro">
+          Les tontines béninoises reposent entièrement sur des liens sociaux. Mais quand des mois de revenus sont en jeu, l'absence de règles contraignantes expose chaque membre à des pertes définitives.
+        </p>
+        <p style="font-size:.95rem; color:var(--text-dim); line-height:1.7;">
+          Au Bénin, les tontines mutuelles — appelées <em style="color:var(--gold);">Gbè</em> ou <em style="color:var(--gold);">Sou</em> — font circuler 2 à 10 millions FCFA par an. Ce sont des systèmes de confiance pure : l'ordre peut être contesté, les retards ne sont pas pénalisés, et l'organisateur (<em style="color:var(--gold);">Sou-Gan</em>) a accès à toute la caisse.
+        </p>
+        <br>
+        <p style="font-size:.95rem; color:var(--text-dim); line-height:1.7;">
+          15 à 20 % des tontines subissent chaque année un incident majeur. Les femmes — qui représentent 70 % des participants — sont les premières victimes. <strong style="color:var(--text);">Aucun recours juridique efficace n'existe.</strong>
+        </p>
+      </div>
+      <div class="reveal">
+        <div class="problem-visual">
+          <p style="font-size:.8rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:1rem;">Cycle d'une tontine mutuelle — Points de rupture</p>
+          <div class="cycle-step">
+            <div class="step-num">1</div>
+            <div class="step-text">
+              <strong>Constitution du groupe</strong>
+              <p>Recrutement par liens sociaux, définition orale du montant et de la fréquence</p>
+            </div>
+          </div>
+          <div class="cycle-step">
+            <div class="step-num danger">2</div>
+            <div class="step-text">
+              <strong>Tirage de l'ordre</strong>
+              <p>Tirage au sort ou décision discrétionnaire du Sou-Gan</p>
+              <span class="risk-tag">⚠ Ordre contestable, modifiable</span>
+            </div>
+          </div>
+          <div class="cycle-step">
+            <div class="step-num danger">3</div>
+            <div class="step-text">
+              <strong>Collecte des cotisations</strong>
+              <p>Chaque membre paie à la date fixée. Retards fréquents.</p>
+              <span class="risk-tag">⚠ Aucune pénalité automatique</span>
+            </div>
+          </div>
+          <div class="cycle-step">
+            <div class="step-num danger">4</div>
+            <div class="step-text">
+              <strong>Remise de la cagnotte</strong>
+              <p>L'organisateur remet physiquement les fonds</p>
+              <span class="risk-tag">⚠ Fuite possible — aucune traçabilité</span>
+            </div>
+          </div>
+          <div class="cycle-step">
+            <div class="step-num">5</div>
+            <div class="step-text">
+              <strong>Fin de cycle</strong>
+              <p>Nouveau cycle — si tout s'est bien passé</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DATA -->
+<section id="data">
+  <div class="max-w">
+    <div class="section-tag reveal">📊 Données clés</div>
+    <h2 class="reveal">Les chiffres qui parlent d'eux-mêmes</h2>
+    <p class="section-intro reveal">Des faits documentés sur les tontines béninoises et leur impact économique réel.</p>
+    <div class="data-cards">
+      <div class="data-card reveal">
+        <div class="icon">👥</div>
+        <span class="num">60–70%</span>
+        <p>Des adultes béninois participent à au moins une tontine ou groupe d'épargne informel</p>
+      </div>
+      <div class="data-card reveal">
+        <div class="icon">💰</div>
+        <span class="num">2–10M FCFA</span>
+        <p>Flux annuel estimé géré par les tontines au Bénin, sans aucune protection formelle</p>
+      </div>
+      <div class="data-card reveal">
+        <div class="icon">⚠️</div>
+        <span class="num">15–20%</span>
+        <p>Des tontines subissent chaque année un incident majeur : détournement ou litige grave</p>
+      </div>
+      <div class="data-card reveal">
+        <div class="icon">👩</div>
+        <span class="num">70%</span>
+        <p>Des participants aux tontines sont des femmes — premières victimes des incidents et fraudes</p>
+      </div>
+      <div class="data-card reveal">
+        <div class="icon">📉</div>
+        <span class="num">-60%</span>
+        <p>D'incidents dans les projets de digitalisation de tontines en Afrique de l'Est</p>
+      </div>
+      <div class="data-card reveal">
+        <div class="icon">📈</div>
+        <span class="num">+35%</span>
+        <p>D'épargne observée après digitalisation des tontines en Afrique orientale</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- INCIDENTS -->
+<section id="incidents">
+  <div class="max-w">
+    <div class="section-tag reveal">🚨 Incidents recensés</div>
+    <h2 class="reveal">Les 7 formes de fraude et de défaillance</h2>
+    <p class="section-intro reveal">Chaque incident a un point commun : en l'absence de règles contraignantes, les victimes n'ont aucun recours effectif.</p>
+    <div class="reveal" style="overflow-x:auto;">
+      <table class="incidents-table">
+        <thead>
+          <tr>
+            <th>Incident</th>
+            <th>Description</th>
+            <th>Fréquence</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Fuite de l'organisateur</strong></td>
+            <td style="color:var(--text-dim);">Le Sou-Gan disparaît avec la caisse. Perte définitive pour tous les membres. Aucun recours juridique efficace.</td>
+            <td><span class="freq-badge high">Très fréquent</span></td>
+          </tr>
+          <tr>
+            <td><strong>Non-paiement après ramassage</strong></td>
+            <td style="color:var(--text-dim);">Un membre ayant reçu sa cagnotte refuse ou ne peut plus cotiser. Les autres membres sont lésés.</td>
+            <td><span class="freq-badge high">Très fréquent</span></td>
+          </tr>
+          <tr>
+            <td><strong>Manipulation de l'ordre</strong></td>
+            <td style="color:var(--text-dim);">L'organisateur modifie l'ordre de passage en faveur de certains. Impossible à prouver sans registre.</td>
+            <td><span class="freq-badge medium">Fréquent</span></td>
+          </tr>
+          <tr>
+            <td><strong>Retards de cotisation</strong></td>
+            <td style="color:var(--text-dim);">Les paiements arrivent en retard, décalant la remise au bénéficiaire. Aucune pénalité automatique.</td>
+            <td><span class="freq-badge medium">Courant</span></td>
+          </tr>
+          <tr>
+            <td><strong>Dissolution anticipée</strong></td>
+            <td style="color:var(--text-dim);">Le groupe se dissout avant que tous aient reçu leur tour. Les derniers membres perdent leurs cotisations.</td>
+            <td><span class="freq-badge low">Occasionnel</span></td>
+          </tr>
+          <tr>
+            <td><strong>Opacité sur les montants</strong></td>
+            <td style="color:var(--text-dim);">L'organisateur annonce une cagnotte inférieure à la réalité et garde la différence.</td>
+            <td><span class="freq-badge medium">Courant</span></td>
+          </tr>
+          <tr>
+            <td><strong>Tontines en ligne frauduleuses</strong></td>
+            <td style="color:var(--text-dim);">Sur WhatsApp et Facebook, des organisateurs créent de fausses tontines. Déclarées illégales par le CNIN en 2024.</td>
+            <td><span class="freq-badge high">En hausse ↑</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- SOLUTION -->
+<section id="solution">
+  <div class="max-w">
+    <div class="solution-grid">
+      <div>
+        <div class="section-tag reveal">⬡ La solution</div>
+        <h2 class="reveal">Des règles que personne ne peut enfreindre</h2>
+        <p class="section-intro reveal">
+          TontineChain encode les règles d'une tontine dans un smart contract. Une fois signé par tous les membres, plus personne — pas même l'organisateur — ne peut les modifier.
+        </p>
+        <div class="solution-features">
+          <div class="feature-item reveal">
+            <div class="feature-icon">🔒</div>
+            <div class="feature-text">
+              <strong>Immuabilité totale</strong>
+              <p>Les règles encodées dans le smart contract ne peuvent pas être modifiées après la création. L'ordre de passage est gravé dans la blockchain.</p>
+            </div>
+          </div>
+          <div class="feature-item reveal">
+            <div class="feature-icon">⚡</div>
+            <div class="feature-text">
+              <strong>Libération automatique</strong>
+              <p>La cagnotte est bloquée dans le contrat dès la création. Elle est libérée automatiquement au bénéficiaire du tour, sans intervention humaine.</p>
+            </div>
+          </div>
+          <div class="feature-item reveal">
+            <div class="feature-icon">👁</div>
+            <div class="feature-text">
+              <strong>Transparence en temps réel</strong>
+              <p>Chaque cotisation est horodatée et visible par tous les membres. Le montant exact de la cagnotte est consultable à tout moment.</p>
+            </div>
+          </div>
+          <div class="feature-item reveal">
+            <div class="feature-icon">⚖️</div>
+            <div class="feature-text">
+              <strong>Pénalités automatiques</strong>
+              <p>Les dates limites de cotisation sont encodées. Tout retard est signalé automatiquement. La cagnotte n'est libérée que si le seuil est atteint.</p>
+            </div>
+          </div>
+          <div class="feature-item reveal">
+            <div class="feature-icon">🛡</div>
+            <div class="feature-text">
+              <strong>Dissolution protégée</strong>
+              <p>Le smart contract prévoit des règles de dissolution : remboursement proportionnel des cotisations pour les membres n'ayant pas encore reçu leur tour.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="reveal">
+        <div class="solution-visual">
+          <div class="sol-title">
+            <span>⬡</span> Problème → Solution blockchain
+          </div>
+          <div class="mapping-row">
+            <div class="prob-tag">🚪 Fuite organisateur</div>
+            <div class="arrow-mid">→</div>
+            <div class="sol-tag">Cagnotte bloquée dans le contrat ✓</div>
+          </div>
+          <div class="mapping-row">
+            <div class="prob-tag">🔀 Ordre manipulé</div>
+            <div class="arrow-mid">→</div>
+            <div class="sol-tag">Ordre immuable à la création ✓</div>
+          </div>
+          <div class="mapping-row">
+            <div class="prob-tag">❌ Non-paiement</div>
+            <div class="arrow-mid">→</div>
+            <div class="sol-tag">Seuil requis avant libération ✓</div>
+          </div>
+          <div class="mapping-row">
+            <div class="prob-tag">⏰ Retards</div>
+            <div class="arrow-mid">→</div>
+            <div class="sol-tag">Dates encodées + alertes auto ✓</div>
+          </div>
+          <div class="mapping-row">
+            <div class="prob-tag">🌫 Opacité</div>
+            <div class="arrow-mid">→</div>
+            <div class="sol-tag">Registre on-chain transparent ✓</div>
+          </div>
+          <div class="mapping-row">
+            <div class="prob-tag">💥 Dissolution</div>
+            <div class="arrow-mid">→</div>
+            <div class="sol-tag">Remboursement proportionnel ✓</div>
+          </div>
+          <div style="margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid var(--border);">
+            <p style="font-size:.78rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:.8rem;">Registre blockchain immuable</p>
+            <div class="chain-visual">
+              <div class="block"><span class="block-icon">🏁</span><span>Création tontine · 12 membres · 25 000 FCFA</span><span class="block-hash">#a3f9...</span></div>
+              <div class="block-connector"></div>
+              <div class="block"><span class="block-icon">💳</span><span>Cotisation membre #3 · Tour 2 · ✓ payé</span><span class="block-hash">#b72c...</span></div>
+              <div class="block-connector"></div>
+              <div class="block"><span class="block-icon">🎯</span><span>Libération cagnotte · Amina K. · 300 000 FCFA</span><span class="block-hash">#e1d4...</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="max-w">
+    <div class="section-tag reveal" style="text-align:center;">⚙️ Fonctionnement</div>
+    <h2 class="reveal" style="text-align:center;">Comment ça marche en 5 étapes</h2>
+    <p class="section-intro reveal" style="text-align:center;margin:0 auto 3rem;">De la création à la libération automatique des fonds — tout est sur la chaîne.</p>
+    <div class="steps-flow">
+      <div class="flow-step reveal">
+        <div class="flow-num">1</div>
+        <h4>Création</h4>
+        <p>L'organisateur définit les règles : montant, fréquence, ordre des bénéficiaires</p>
+      </div>
+      <div class="flow-step reveal">
+        <div class="flow-num">2</div>
+        <h4>Signature</h4>
+        <p>Chaque membre signe le smart contract. Les règles deviennent immuables</p>
+      </div>
+      <div class="flow-step reveal">
+        <div class="flow-num">3</div>
+        <h4>Cotisation</h4>
+        <p>Les membres paient via l'application. Chaque versement est enregistré on-chain</p>
+      </div>
+      <div class="flow-step reveal">
+        <div class="flow-num">4</div>
+        <h4>Vérification</h4>
+        <p>Le contrat vérifie que tous ont cotisé avant de déclencher la libération</p>
+      </div>
+      <div class="flow-step reveal">
+        <div class="flow-num">5</div>
+        <h4>Libération auto</h4>
+        <p>La cagnotte est envoyée automatiquement au bénéficiaire du tour actif</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TYPES -->
+<section id="types">
+  <div class="max-w">
+    <div class="section-tag reveal">🗺 Types de tontines</div>
+    <h2 class="reveal">6 formes de tontines au Bénin</h2>
+    <p class="section-intro reveal">TontineChain s'adapte aux différentes structures d'épargne collective béninoises.</p>
+    <div class="types-grid">
+      <div class="type-card reveal">
+        <div class="type-header">
+          <div><div class="type-name">Tontine Mutuelle</div><div class="type-local">Gbè / Sou</div></div>
+          <div class="risk-indicator">⚠️</div>
+        </div>
+        <p class="type-desc">Cotisations régulières. La cagnotte est remise à tour de rôle selon un ordre défini. La plus répandue — et la plus exposée aux fraudes.</p>
+      </div>
+      <div class="type-card reveal">
+        <div class="type-header">
+          <div><div class="type-name">Tontine Commerciale</div><div class="type-local">Professionnelle</div></div>
+          <div class="risk-indicator">🟡</div>
+        </div>
+        <p class="type-desc">Réservée à des membres d'un même métier. Les réunions servent aussi d'échanges professionnels entre commerçants, artisans.</p>
+      </div>
+      <div class="type-card reveal">
+        <div class="type-header">
+          <div><div class="type-name">Tontine Alimentaire</div><div class="type-local">Adôgbè</div></div>
+          <div class="risk-indicator">🔴</div>
+        </div>
+        <p class="type-desc">Les cotisations servent à acheter des vivres. Populaire avant les fêtes. Interdite sous forme informelle depuis 2022 par arrêté ministériel.</p>
+      </div>
+      <div class="type-card reveal">
+        <div class="type-header">
+          <div><div class="type-name">Tontine Financière</div><div class="type-local">Avec enchères</div></div>
+          <div class="risk-indicator">🟡</div>
+        </div>
+        <p class="type-desc">Les membres enchérissent pour obtenir la cagnotte en priorité en acceptant des intérêts. Le bénéfice est redistribué en fin de cycle.</p>
+      </div>
+      <div class="type-card reveal">
+        <div class="type-header">
+          <div><div class="type-name">Tontine Solidarité</div><div class="type-local">Caisse de secours</div></div>
+          <div class="risk-indicator">✅</div>
+        </div>
+        <p class="type-desc">Partie des cotisations alimente un fonds commun pour les membres en difficulté : deuil, maladie, urgence. Risque faible.</p>
+      </div>
+      <div class="type-card reveal">
+        <div class="type-header">
+          <div><div class="type-name">Tontine en ligne</div><div class="type-local">WhatsApp / Facebook</div></div>
+          <div class="risk-indicator">🚫</div>
+        </div>
+        <p class="type-desc">Via réseaux sociaux. L'anonymat facilite les arnaques massives. Déclarée illégale par le CNIN en août 2024. TontineChain est l'alternative légale.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- LEGAL -->
+<section id="legal">
+  <div class="max-w">
+    <div class="section-tag reveal">⚖️ Cadre légal</div>
+    <h2 class="reveal">Une solution dans la légalité béninoise</h2>
+    <p class="section-intro reveal">TontineChain s'inscrit dans la logique d'assainissement du secteur portée par l'État béninois et la SNIF 2023–2027.</p>
+    <div class="legal-items">
+      <div class="legal-item reveal">
+        <div class="legal-icon">📜</div>
+        <div>
+          <strong>Loi n°2012-14 du 21 mars 2012</strong>
+          <p>Règlement des Systèmes Financiers Décentralisés (SFD) en République du Bénin. TontineChain opère en conformité.</p>
+        </div>
+      </div>
+      <div class="legal-item reveal">
+        <div class="legal-icon">🚫</div>
+        <div>
+          <strong>Arrêté du 4 mars 2022</strong>
+          <p>Interdiction de l'Adôgbè informel et de toute collecte illégale. TontineChain est la solution formelle et traçable.</p>
+        </div>
+      </div>
+      <div class="legal-item reveal">
+        <div class="legal-icon">🏛</div>
+        <div>
+          <strong>ANSSFD — Agrément</strong>
+          <p>Agrément obligatoire pour la finance décentralisée. TontineChain opère via partenariat avec un SFD agréé ou son propre agrément.</p>
+        </div>
+      </div>
+      <div class="legal-item reveal">
+        <div class="legal-icon">📱</div>
+        <div>
+          <strong>Alerte CNIN — Août 2024</strong>
+          <p>Les tontines en ligne déclarées illégales. TontineChain est la réponse légale, sécurisée et transparente à ce besoin.</p>
+        </div>
+      </div>
+      <div class="legal-item reveal">
+        <div class="legal-icon">👮</div>
+        <div>
+          <strong>Article 651 du Code pénal</strong>
+          <p>L'abus de confiance est puni de 1 à 5 ans d'emprisonnement. La blockchain rend cette infraction techniquement impossible.</p>
+        </div>
+      </div>
+      <div class="legal-item reveal">
+        <div class="legal-icon">🎯</div>
+        <div>
+          <strong>SNIF 2023–2027</strong>
+          <p>Stratégie Nationale d'Inclusion Financière du Bénin. TontineChain est un outil d'assainissement aligné avec la vision de l'État.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- FOOTER -->
+<footer>
+   <a class="nav-logo" href="#hero">
+    <svg class="hex" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M20 2L36 11V29L20 38L4 29V11L20 2Z" fill="rgba(245,166,35,0.15)" stroke="#F5A623" stroke-width="1.5"/>
+      <text x="20" y="26" text-anchor="middle" font-family="Itim,sans-serif" font-size="13" font-weight="800" fill="#F5A623">TC</text>
+    </svg>
+    <span>TontineChain</span>
+  </a>
+  <p>Tontines sécurisées par la blockchain au Bénin</p>
+  <ul class="footer-links">
+    <li><a href="#problem">Problème</a></li>
+    <li><a href="#solution">Solution</a></li>
+    <li><a href="#types">Types de tontines</a></li>
+    <li><a href="#legal">Cadre légal</a></li>
+  </ul>
+
+  <p style="margin-top:2rem;font-size:.8rem;">© 2026 TontineChain · MIABE Hackathon · BJ-02 · Bénin</p>
+</footer>
+
+<script>
+// ── SCROLL REVEAL ──
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('visible'), 80 * (Array.from(reveals).indexOf(e.target) % 5));
+      observer.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.1 });
+reveals.forEach(r => observer.observe(r));
+
+// ── COUNT UP ANIMATION ──
+function animateCount(el) {
+  const target = parseInt(el.dataset.target);
+  const suffix = el.dataset.suffix || '';
+  let start = 0;
+  const duration = 1800;
+  const step = (timestamp) => {
+    if (!start) start = timestamp;
+    const progress = Math.min((timestamp - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.floor(eased * target) + suffix;
+    if (progress < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+const counters = document.querySelectorAll('[data-target]');
+const counterObs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { animateCount(e.target); counterObs.unobserve(e.target); }
+  });
+}, { threshold: 0.5 });
+counters.forEach(c => counterObs.observe(c));
+
+// ── NAV ACTIVE HIGHLIGHT ──
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('.nav-links a');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 120) current = s.id; });
+  navLinks.forEach(a => {
+    a.style.color = a.getAttribute('href') === '#' + current ? 'var(--gold)' : '';
+  });
+});
+
+// ── PARALLAX GRID ──
+window.addEventListener('scroll', () => {
+  const grid = document.querySelector('.hero-grid');
+  if (grid) grid.style.transform = `translateY(${window.scrollY * 0.3}px)`;
+});
+</script>
+</body>
+</html>
